@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QR PDF & Compressor</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Libraries (CDN) -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/browser-image-compression@1.0.15/dist/browser-image-compression.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>QR PDF & Compressor</h1>
+    <p class="tagline">Scan • Generate • Create PDFs • Compress images</p>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="qr" class="active">QR</button>
+    <button data-tab="pdf">PDF</button>
+    <button data-tab="compress">Compress</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+
+  <main>
+    <!-- QR Tab -->
+    <section id="tab-qr" class="tabpane active">
+      <div class="col">
+        <h2>Generate QR</h2>
+        <input id="qr-input" placeholder="Enter URL or text" />
+        <button id="btn-gen-qr">Generate</button>
+        <div id="qrcode" class="qrcode-box"></div>
+        <div class="row">
+          <button id="btn-download-qr">Download QR</button>
+          <button id="btn-share-qr">Share</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <h2>Scan QR</h2>
+        <div id="qr-reader" style="width:100%"></div>
+        <p id="scan-result">Result: <span id="scan-text">—</span></p>
+        <div class="row">
+          <button id="btn-start-scan">Start</button>
+          <button id="btn-stop-scan" disabled>Stop</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PDF Tab -->
+    <section id="tab-pdf" class="tabpane">
+      <h2>Create PDF</h2>
+      <textarea id="pdf-text" rows="4" placeholder="Enter text to include in PDF"></textarea>
+      <div class="row">
+        <input id="pdf-images" type="file" accept="image/*" multiple />
+        <button id="btn-create-pdf">Create PDF</button>
+      </div>
+      <p id="pdf-status">Selected images: 0</p>
+    </section>
+
+    <!-- Compress Tab -->
+    <section id="tab-compress" class="tabpane">
+      <h2>Compress Images</h2>
+      <input id="compress-input" type="file" accept="image/*" multiple />
+      <label for="quality-range">Quality: <span id="quality-label">0.7</span></label>
+      <input id="quality-range" type="range" min="10" max="95" value="70" />
+      <div class="row">
+        <button id="btn-compress">Compress Selected</button>
+        <button id="btn-download-all" disabled>Download All</button>
+      </div>
+      <div id="compress-results"></div>
+    </section>
+
+    <!-- Settings Tab -->
+    <section id="tab-settings" class="tabpane">
+      <h2>Settings</h2>
+      <p>Remove Ads (future), About, Help</p>
+      <p class="small">This PWA is a simple local-first tool. No backend required.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>QR PDF & Compressor — web PWA MVP</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+<!--
+style.css
+:root {
+  --accent: #0066cc;
+  --bg: #f7f9fc;
+  --card: #ffffff;
+  --muted: #666;
+}
+
+* { box-sizing: border-box; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+body { margin:0; background:var(--bg); color:#111; }
+header { padding:18px; background:var(--card); border-bottom:1px solid #eee; }
+header h1 { margin:0; font-size:20px; }
+.tagline { margin:4px 0 0; color:var(--muted); font-size:13px; }
+
+.tabs { display:flex; gap:6px; padding:10px; background:transparent; justify-content:center; }
+.tabs button { border:1px solid #ddd; background:white; padding:10px 14px; border-radius:8px; cursor:pointer; }
+.tabs button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+main { padding:16px; max-width:960px; margin:16px auto; }
+.tabpane { display:none; background:var(--card); padding:16px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+.tabpane.active { display:block; }
+
+.col { margin-bottom:16px; }
+.row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+input[type="text"], textarea, input[type="file"] { width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; }
+button { background:var(--accent); color:white; border:none; padding:10px 12px; border-radius:8px; cursor:pointer; }
+button[disabled] { opacity:0.5; cursor:not-allowed; }
+
+.qrcode-box { margin-top:12px; padding:10px; background:#fff; display:inline-block; border-radius:8px; }
+
+footer { text-align:center; padding:14px; color:var(--muted); font-size:13px; }
+.small { font-size:12px; color:var(--muted); }
+#compress-results img { max-width:130px; margin:6px; border-radius:8px; border:1px solid #ddd; }
+-->
+
+
+<!--
+app.js
+manifest.json
+service-worker.js 
+// app.js - main logic for web PWA MVP
+// Libraries used: html5-qrcode, qrcodejs, browser-image-compression, jsPDF, html2canvas
+
+// --- Basic tab navigation
+document.querySelectorAll('.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=> {
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tab-' + target).classList.add('active');
+  });
+});
+
+// ----- QR generate
+const qrInput = document.getElementById('qr-input');
+const btnGen = document.getElementById('btn-gen-qr');
+const qrcodeDiv = document.getElementById('qrcode');
+const btnDownloadQR = document.getElementById('btn-download-qr');
+const btnShareQR = document.getElementById('btn-share-qr');
+
+let qrObj = null;
+btnGen.addEventListener('click', ()=>{
+  qrcodeDiv.innerHTML = '';
+  const value = qrInput.value.trim();
+  if(!value) return alert('Enter text or URL to generate.');
+  qrObj = new QRCode(qrcodeDiv, { text: value, width: 240, height: 240 });
+});
+
+btnDownloadQR.addEventListener('click', ()=>{
+  if(!qrObj) return alert('Generate a QR code first.');
+  const img = qrcodeDiv.querySelector('img') || qrcodeDiv.querySelector('canvas');
+  if(!img) return alert('No QR found.');
+  // canvas or img
+  if(img.tagName === 'IMG') {
+    const a = document.createElement('a'); a.href = img.src; a.download = 'qr.png'; a.click();
+  } else {
+    const url = img.toDataURL('image/png');
+    const a = document.createElement('a'); a.href = url; a.download = 'qr.png'; a.click();
+  }
+});
+
+btnShareQR.addEventListener('click', async ()=>{
+  try {
+    const el = qrcodeDiv.querySelector('img') || qrcodeDiv.querySelector('canvas');
+    if(!el) return alert('Generate QR first.');
+    const dataUrl = el.tagName === 'IMG' ? el.src : el.toDataURL('image/png');
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const filesArray = [ new File([blob], 'qr.png', { type: blob.type }) ];
+    if(navigator.canShare && navigator.canShare({ files: filesArray })) {
+      await navigator.share({ files: filesArray, title: 'QR Code' });
+    } else {
+      alert('Sharing not supported on this browser. Download instead.');
+    }
+  } catch(e){ console.error(e); alert('Share failed'); }
+});
+
+// ----- QR scan (html5-qrcode)
+const qrReaderDiv = document.getElementById('qr-reader');
+const btnStartScan = document.getElementById('btn-start-scan');
+const btnStopScan = document.getElementById('btn-stop-scan');
+const scanText = document.getElementById('scan-text');
+
+let html5QrcodeScanner = null;
+btnStartScan.addEventListener('click', async ()=>{
+  btnStartScan.disabled = true;
+  btnStopScan.disabled = false;
+  scanText.textContent = 'Scanning...';
+  html5QrcodeScanner = new Html5Qrcode("qr-reader");
+  try {
+    await html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+      (decodedText, decodedResult) => {
+        scanText.textContent = decodedText;
+      },
+      (errorMessage) => { /* ignore non-fatal errors */ }
+    );
+  } catch(err) {
+    alert('Camera start failed: ' + err);
+    btnStartScan.disabled = false;
+    btnStopScan.disabled = true;
+  }
+});
+
+btnStopScan.addEventListener('click', async ()=>{
+  if(html5QrcodeScanner) {
+    await html5QrcodeScanner.stop();
+    html5QrcodeScanner.clear();
+    html5QrcodeScanner = null;
+    scanText.textContent = 'Stopped';
+  }
+  btnStartScan.disabled = false;
+  btnStopScan.disabled = true;
+});
+
+// ----- PDF creation (jsPDF + html2canvas)
+const pdfText = document.getElementById('pdf-text');
+const pdfImagesInput = document.getElementById('pdf-images');
+const btnCreatePdf = document.getElementById('btn-create-pdf');
+const pdfStatus = document.getElementById('pdf-status');
+
+let pdfImageFiles = [];
+pdfImagesInput.addEventListener('change', (e)=>{
+  pdfImageFiles = Array.from(e.target.files || []);
+  pdfStatus.textContent = `Selected images: ${pdfImageFiles.length}`;
+});
+
+btnCreatePdf.addEventListener('click', async ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  let y = 40;
+  const leftMargin = 40;
+  const maxWidth = 520;
+
+  // add text
+  if(pdfText.value.trim()){
+    doc.setFontSize(12);
+    const lines = doc.splitTextToSize(pdfText.value, maxWidth);
+    doc.text(lines, leftMargin, y);
+    y += lines.length * 14 + 20;
+  }
+
+  // images
+  for(let i=0;i<pdfImageFiles.length;i++){
+    const file = pdfImageFiles[i];
+    const imgData = await fileToDataUrl(file);
+    // fit into page
+    const img = new Image();
+    await new Promise(r => { img.onload = r; img.src = imgData; });
+    const ratio = img.width / img.height;
+    const displayWidth = Math.min(maxWidth, img.width);
+    const displayHeight = displayWidth / ratio;
+    if(y + displayHeight > 770) { doc.addPage(); y = 40; }
+    doc.addImage(imgData, 'JPEG', leftMargin, y, displayWidth, displayHeight);
+    y += displayHeight + 10;
+  }
+
+  doc.save('document.pdf');
+});
+
+function fileToDataUrl(file){
+  return new Promise((res, rej)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> res(reader.result);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ----- Image compression (browser-image-compression)
+const compressInput = document.getElementById('compress-input');
+const qualityRange = document.getElementById('quality-range');
+const qualityLabel = document.getElementById('quality-label');
+const btnCompress = document.getElementById('btn-compress');
+const compressResults = document.getElementById('compress-results');
+const btnDownloadAll = document.getElementById('btn-download-all');
+
+let compressFiles = [];
+let compressedBlobs = [];
+
+qualityRange.addEventListener('input', ()=>{
+  qualityLabel.textContent = (qualityRange.value / 100).toFixed(2);
+});
+
+compressInput.addEventListener('change', (e)=>{
+  compressFiles = Array.from(e.target.files || []);
+  compressResults.innerHTML = `<p>Selected ${compressFiles.length} files</p>`;
+  compressedBlobs = [];
+  btnDownloadAll.disabled = true;
+});
+
+btnCompress.addEventListener('click', async ()=>{
+  if(!compressFiles.length) return alert('Choose images first.');
+  compressResults.innerHTML = '<p>Compressing…</p>';
+  compressedBlobs = [];
+
+  for(const file of compressFiles){
+    const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true, initialQuality: qualityRange.value / 100 };
+    try {
+      const compressedFile = await imageCompression(file, options);
+      compressedBlobs.push(compressedFile);
+    } catch(e){
+      console.error('compress error', e);
+    }
+  }
+
+  // show previews and sizes
+  compressResults.innerHTML = '';
+  compressedBlobs.forEach((b, i)=>{
+    const url = URL.createObjectURL(b);
+    const orig = compressFiles[i];
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<div><img src="${url}" /><p>Original: ${formatBytes(orig.size)} → Compressed: ${formatBytes(b.size)}</p>
+      <a href="${url}" download="compressed-${i}.jpg">Download</a></div>`;
+    compressResults.appendChild(wrap);
+  });
+  if(compressedBlobs.length) btnDownloadAll.disabled = false;
+});
+
+btnDownloadAll.addEventListener('click', ()=>{
+  compressedBlobs.forEach((b, i)=>{
+    const url = URL.createObjectURL(b);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `compressed-${i}.jpg`;
+    a.click();
+  });
+});
+
+function formatBytes(bytes, decimals = 2) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['B','KB','MB','GB','TB'];
+  const i = Math.floor(Math.log(bytes)/Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+// --- Service worker registration for PWA
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> {
+    navigator.serviceWorker.register('service-worker.js').catch(err => console.warn('SW failed', err));
+  });
+}
+
+
+{
+  "short_name": "QRPDF",
+  "name": "QR PDF & Compressor",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0066cc"
+}
+
+
+// Simple service worker - caches app shell for offline usage
+const CACHE_NAME = 'qrpdf-cache-v1';
+const FILES_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/style.css',
+  '/app.js',
+  '/manifest.json'
+];
+
+self.addEventListener('install', evt => {
+  evt.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', evt => {
+  evt.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.map(k => { if(k !== CACHE_NAME) return caches.delete(k); })
+    ))
+  );
+  self.clients.claim();
+});
+
+
+self.addEventListener('fetch', evt => {
+  if (evt.request.method !== 'GET') return;
+  evt.respondWith(
+    caches.match(evt.request).then(cached => cached || fetch(evt.request))
+  );
+});
+
+-->
