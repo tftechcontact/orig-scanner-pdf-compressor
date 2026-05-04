@@ -129,9 +129,9 @@ footer { text-align:center; padding:14px; color:var(--muted); font-size:13px; }
 
 
 <!--
+
+
 app.js
-manifest.json
-service-worker.js 
 // app.js - main logic for web PWA MVP
 // Libraries used: html5-qrcode, qrcodejs, browser-image-compression, jsPDF, html2canvas
 
@@ -358,6 +358,7 @@ if('serviceWorker' in navigator){
 }
 
 
+manifest.json
 {
   "short_name": "QRPDF",
   "name": "QR PDF & Compressor",
@@ -372,6 +373,7 @@ if('serviceWorker' in navigator){
 }
 
 
+service-worker.js 
 // Simple service worker - caches app shell for offline usage
 const CACHE_NAME = 'qrpdf-cache-v1';
 const FILES_TO_CACHE = [
